@@ -15,20 +15,20 @@ function displayRandomQuote() {
 
 // addQuote function
 function addQuote() {
-  const newQuoteText = document.getElementById('newQuoteText').value.trim();
-  const newQuoteCategory = document.getElementById('newQuoteCategory').value.trim();
+  const text = document.getElementById('newQuoteText').value.trim();
+  const category = document.getElementById('newQuoteCategory').value.trim();
 
-  if (newQuoteText && newQuoteCategory) {
-    quotes.push({ text: newQuoteText, category: newQuoteCategory });
+  if (text && category) {
+    quotes.push({ text, category });
     displayRandomQuote();
 
-    // Clear input fields
     document.getElementById('newQuoteText').value = '';
     document.getElementById('newQuoteCategory').value = '';
   } else {
-    alert("Please enter both quote and category.");
+    alert("Please enter both a quote and category.");
   }
 }
 
-// Event listener for "Show New Quote" button
+// Event listeners
 document.getElementById('newQuote').addEventListener('click', displayRandomQuote);
+document.getElementById('addQuoteBtn').addEventListener('click', addQuote);
