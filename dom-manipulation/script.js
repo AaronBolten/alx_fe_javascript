@@ -1,6 +1,5 @@
 let quotes = [];
 
-// Load quotes from local storage (if they exist), else use defaults
 function loadQuotes() {
   const storedQuotes = localStorage.getItem("quotes");
   if (storedQuotes) {
@@ -19,20 +18,58 @@ function saveQuotes() {
   localStorage.setItem("quotes", JSON.stringify(quotes));
 }
 
-function showRandomQuote() {
-  if (quotes.length === 0) {
-    document.getElementById("quoteDisplay").innerHTML = "<p>No quotes available.</p>";
+function populateCategories() {
+  const select = document.getElementById("categoryFilter");
+
+  // Clear existing categories except "All Categories"
+  while (select.options.length > 1) {
+    select.remove(1);
+  }
+
+  const categories = [...new Set(quotes.map(q => q.category))];
+  categories.forEach(category => {
+    const option = document.createElement("option");
+    option.value = category;
+    option.textContent = category;
+    select.appendChild(option);
+  });
+
+  // Restore last selected filter
+  const lastFilter = localStorage.getItem("lastFilter");
+  if (lastFilter) {
+    select.value = lastFilter;
+    filterQuotes(); // Immediately filter if a filter was saved
+  }
+}
+
+function filterQuotes() {
+  const selectedCategory = document.getElementById("categoryFilter").value;
+  localStorage.setItem("lastFilter", selectedCategory);
+
+  let filteredQuotes;
+
+  if (selectedCategory === "all") {
+    filteredQuotes = quotes;
+  } else {
+    filteredQuotes = quotes.filter(q => q.category === selectedCategory);
+  }
+
+  if (filteredQuotes.length === 0) {
+    document.getElementById("quoteDisplay").innerHTML = "<p>No quotes available in this category.</p>";
     return;
   }
 
-  const randomIndex = Math.floor(Math.random() * quotes.length);
-  const quote = quotes[randomIndex];
+  const randomIndex = Math.floor(Math.random() * filteredQuotes.length);
+  const quote = filteredQuotes[randomIndex];
 
   document.getElementById("quoteDisplay").innerHTML =
     `<p>"${quote.text}"</p><p><em>${quote.category}</em></p>`;
 
-  // Save last viewed quote in session storage
   sessionStorage.setItem("lastViewedQuote", JSON.stringify(quote));
+}
+
+function showRandomQuote() {
+  filterQuotes(); // simply delegate to the filtering logic
 }
 
 function addQuote() {
@@ -47,6 +84,7 @@ function addQuote() {
 
     quotes.push(newQuote);
     saveQuotes();
+    populateCategories();
 
     alert("Quote added successfully!");
     textInput.value = "";
@@ -102,6 +140,7 @@ function importFromJsonFile(event) {
       if (Array.isArray(importedQuotes)) {
         quotes.push(...importedQuotes);
         saveQuotes();
+        populateCategories();
         alert("Quotes imported successfully!");
       } else {
         alert("Invalid JSON format!");
@@ -117,6 +156,7 @@ function importFromJsonFile(event) {
 document.addEventListener("DOMContentLoaded", () => {
   loadQuotes();
   createAddQuoteForm();
+  populateCategories();
 
   document.getElementById("newQuote").addEventListener("click", showRandomQuote);
 
