@@ -34,11 +34,11 @@ function populateCategories() {
     select.appendChild(option);
   });
 
-  // Restore last selected filter
+
   const lastFilter = localStorage.getItem("lastFilter");
   if (lastFilter) {
     select.value = lastFilter;
-    filterQuotes(); // Immediately filter if a filter was saved
+    filterQuotes(); 
   }
 }
 
@@ -69,7 +69,7 @@ function filterQuotes() {
 }
 
 function showRandomQuote() {
-  filterQuotes(); // simply delegate to the filtering logic
+  filterQuotes();
 }
 
 function addQuote() {
@@ -153,6 +153,33 @@ function importFromJsonFile(event) {
   fileReader.readAsText(event.target.files[0]);
 }
 
+
+
+async function syncWithServer() {
+  try {
+    const response = await fetch("https://jsonplaceholder.typicode.com/posts");
+    const serverData = await response.json();
+
+    const serverQuotes = serverData.slice(0, 5).map(post => ({
+      text: post.title,
+      category: "ServerSync"
+    }));
+
+  
+    quotes = serverQuotes;
+    saveQuotes();
+    populateCategories();
+    filterQuotes();
+
+    document.getElementById("syncMessage").textContent =
+      "Sync complete. Server data has replaced local data.";
+  } catch (error) {
+    console.error("Error syncing with server:", error);
+    document.getElementById("syncMessage").textContent =
+      "Failed to sync with server.";
+  }
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   loadQuotes();
   createAddQuoteForm();
@@ -160,10 +187,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
   document.getElementById("newQuote").addEventListener("click", showRandomQuote);
 
+  const syncBtn = document.getElementById("syncQuotesBtn");
+  syncBtn.addEventListener("click", syncWithServer);
+
   const lastQuote = sessionStorage.getItem("lastViewedQuote");
   if (lastQuote) {
     const quote = JSON.parse(lastQuote);
     document.getElementById("quoteDisplay").innerHTML =
       `<p>"${quote.text}"</p><p><em>${quote.category}</em></p>`;
   }
+
 });
